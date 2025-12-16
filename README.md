@@ -53,6 +53,62 @@
 
 ---
 
+## 🛡️ Cloudflare WAF 安全防御配置 (强烈推荐)
+
+为了防止恶意扫描、爬虫和未经授权的访问，建议在 Cloudflare 后台配置 WAF 规则。
+
+### 1. 自定义拦截规则 (WAF Custom Rules)
+
+**路径**：Cloudflare Dashboard -> 域名 -> Security (安全性) -> WAF -> Custom rules (自定义规则) -> Create rule。
+<img width="1591" height="383" alt="image" src="https://github.com/user-attachments/assets/cd5b84ae-aad6-43d3-a149-bbcc85475f99" />
+<img width="257" height="207" alt="image" src="https://github.com/user-attachments/assets/e4767796-c0cf-4cdd-adbd-5946ec4e1133" />
+<img width="1628" height="288" alt="image" src="https://github.com/user-attachments/assets/680420e8-74b0-4fa3-981b-a55c9e2ff787" />
+<img width="345" height="212" alt="image" src="https://github.com/user-attachments/assets/ef292872-aafa-4fec-92bf-7fbe30dd9625" />
+
+**规则逻辑**：拦截高风险地区（如伊朗、朝鲜）；拦截所有非白名单 IP 且非代理客户端（如浏览器直连、爬虫）的访问。
+
+*   **规则名称**: `任意内容`
+*   **采取措施**: `Block【阻止】`
+*   **表达式预览** (点击 Edit expression【编辑表达式】 粘贴代码)：
+<img width="1365" height="130" alt="image" src="https://github.com/user-attachments/assets/be2ac19f-d3b7-48fa-be03-59014943f0fa" />
+
+> **⚠️ 请在此处填入本文档末尾提供的【WAF 规则表达式代码】** 注意：请将 {你的管理员IP1 你的管理员IP2} 替换为你自己的 IPV4或者节点ipv4/公网ipv6。
+> ```sql
+(ip.geoip.country in {"IR" "KP"})
+or
+(
+  not ip.src in {你的ipv4/你的节点ip 你的ipv6}
+  and
+  not http.user_agent contains "Clash"
+  and
+  not http.user_agent contains "sing-box"
+  and
+  not http.user_agent contains "v2ray"
+  and
+  not http.user_agent contains "Shadowrocket"
+  and
+  not http.user_agent contains "Quantumult"
+  and
+  not http.user_agent contains "Mihomo"
+  and
+  not http.user_agent contains "Karing"
+  and
+  not http.user_agent contains "Happ"
+  and
+  not http.user_agent contains "Nekobox"
+)
+
+### 2. 🤖 开启机器人战斗模式 (Bot Fight Mode)
+
+*   **路径**: Cloudflare Dashboard -> 域名 -> Security (安全性) -> 设置 (Settings)。
+*   <img width="257" height="207" alt="image" src="https://github.com/user-attachments/assets/1eaad26e-35fd-4b3a-bd6d-fd544c410d09" />
+<img width="1591" height="383" alt="image" src="https://github.com/user-attachments/assets/34fbcf37-502f-43b8-963a-628d30e4066a" />
+*   
+*   **操作**: 在页面上方找到 **“自动程序攻击模式” (Bot Fight Mode)**，开启开关。
+*   <img width="979" height="722" alt="image" src="https://github.com/user-attachments/assets/b8bc895f-abc3-4e83-b548-0ab85f82d0b0" />
+*   **作用**: 自动拦截已知的恶意爬虫和脚本小子，减少垃圾流量。
+---
+
 ## 📂 代码版本说明
 
 本项目包含两套代码，请根据您的部署方式选择：
