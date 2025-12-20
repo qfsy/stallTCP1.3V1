@@ -8,7 +8,8 @@
 
 > **🌟 核心特性：**
 > *   **无状态部署**：无需服务器，完全依托 Cloudflare 免费生态 (Workers + D1 + Pages)。
-> *   **极致安全**：采用**会话级强制登录**机制，杜绝后台“闪屏”泄露，关闭浏览器即退出。
+> *   **极致安全**：采用 **会话级强制登录** 机制，杜绝后台“闪屏”泄露；新增 **HTTP 安全响应头** (X-Frame-Options 等)，防止点击劫持攻击。
+> *   **智能防死循环**：内置递归保护机制，防止因配置错误导致 Worker 自我请求炸库。
 > *   **数据持久化**：支持 **D1 数据库 (SQLite)** 或 KV 存储，配置永不丢失。
 > *   **可视化管理**：后台直接管理黑名单 IP、TG 通知配置、Cloudflare 统计配置，无需反复修改代码。
 
@@ -53,10 +54,7 @@
 | `ADDAPI` | **远程 TXT 优选列表** | 填入 URL，格式同上 (一行一个 IP) |
 | `ADDCSV` | **远程 CSV 优选列表** | 填入 URL，支持高级节点信息导入 |
 
-### 🧩 订阅合并机制 (Hybrid Mode) - **🆕 新增特性**
-
-**已取消**
-
+ 
 ---
 
 ## 🛡️ Cloudflare WAF 安全防御配置 (强烈推荐)
@@ -78,13 +76,13 @@
 *   **表达式预览** (点击 Edit expression【编辑表达式】 粘贴代码)：
 <img width="1365" height="130" alt="image" src="https://github.com/user-attachments/assets/be2ac19f-d3b7-48fa-be03-59014943f0fa" />
 
-> **⚠️ 请在此处填入本文档末尾提供的【WAF 规则表达式代码】** 注意：请将 {你的管理员IP1 你的管理员IP2} 替换为你自己的 IPV4或者节点ipv4/公网ipv6。
+> **⚠️ 请在此处填入本文档末尾提供的【WAF 规则表达式代码】** 注意：请将 {你的管理员IP1 你的管理员IP2} 替换为你自己的 IPV4或者节点ipv4/公网ipv6。 支持多个IP填写
 
  ```sql
 (ip.geoip.country in {"IR" "KP"})
 or
 (
-  not ip.src in {你的ipv4/你的节点ip 你的ipv6}
+  not ip.src in {你的管理员IP1 你的管理员IP2}
   and
   not http.user_agent contains "Clash"
   and
@@ -103,6 +101,18 @@ or
   not http.user_agent contains "Happ"
   and
   not http.user_agent contains "Nekobox"
+  and
+  not http.user_agent contains "Stash"
+  and
+  not http.user_agent contains "Loon"
+  and
+  not http.user_agent contains "Surfboard"
+  and
+  not http.user_agent contains "Go-http-client"
+  and
+  not http.user_agent contains "curl"
+  and
+  not http.user_agent contains "okhttp"
 )
 ```
 
@@ -139,16 +149,18 @@ or
     *   采用 **会话级** 验证机制。
     *   **防闪屏修复**：后台页面默认隐藏，只有鉴权通过后才显示，杜绝加载瞬间的数据泄露。
     *   **自动退出**：关闭浏览器或标签页即自动退出登录，每次进入后台均需重新验证。
+    *   **XSS 防御**：新增 HTTP 响应头 (X-Frame-Options, X-Content-Type-Options) 策略，防止管理面板被恶意嵌入。
 *   **🚫 增强型防刷**：
     *   基于数据库的洪水攻击检测，单 IP 短时间频繁请求（>5次）自动拉黑。
     *   **黑名单管理**：后台可实时查看、添加、删除被封禁的 IP，立即生效。
 *   **🤖 智能通知系统**：
     *   **静默模式**：自动过滤爬虫扫描，只有管理员登录或操作时才发送通知，告别刷屏。
-    *   **UA 拦截**：自动拦截 `bot`, `spider`, `python` 等常见爬虫 User-Agent。
+    *   **UA 拦截**：自动拦截 `bot`, `spider`, `python`, `curl` 等常见爬虫 User-Agent。
 *   **💡 状态指示灯**：后台直观显示 TG 推送和 CF 统计的配置状态（绿灯/红灯）。
 
 ### 核心功能
-*   **🚀 自适应订阅**：自动识别客户端（Clash, Sing-box, v2rayNG 等），返回对应格式的配置。
+*   **🚀 自适应订阅**：自动识别以下客户端并返回对应格式：
+    *   **支持列表**：Clash, Sing-box, Mihomo, Flclash, V2rayNG, Surge, Quantumult X, Shadowrocket, Loon, Hiddify 等。
 *   **🌍 优选 IP 支持**：内置优选库，支持随机打乱负载均衡，支持远程自动更新。
 *   **📊 可视化后台**：
     *   直接在后台修改和保存 TG/CF 配置（优先于硬编码）。
